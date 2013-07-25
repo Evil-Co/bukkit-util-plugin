@@ -1,0 +1,213 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<modelVersion>4.0.0</modelVersion>
+	<groupId>com.evilco.bukkit.util</groupId>
+	<artifactId>plugin</artifactId>
+	<version>1.0.0</version>
+	<packaging>jar</packaging>
+  
+	<!-- Project information -->
+	<name>Plugin Utility</name>
+	<inceptionYear>2013</inceptionYear>
+	<url>http://www.evil-co.com/product/mc/bukkit/utilities/plugin</url>
+	<description>Provides simple APIs which make the life of a Bukkit plugin developer easier.</description>
+    
+	<licenses>
+		<license>
+			<name>GNU Lesser General Public License 3.0</name>
+			<url>LICENSE.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+  
+	<issueManagement>
+		<system>JIRA</system>
+		<url>http://www.evil-co.com/project</url>
+	</issueManagement>
+  
+	<ciManagement>
+		<system>Bamboo</system>
+		<url>http://www.evil-co.com/ci</url>
+	</ciManagement>
+  
+	<scm>
+		<connection>scm:git:git://github.com/Evil-Co/bukkit-util-plugin.git</connection>
+		<developerConnection>scm:git:git@github.com:Evil-Co/bukkit-util-plugin.git</developerConnection>
+		<url>https://github.com/Evil-Co/bukkit-util-plugin</url>
+		<tag>master</tag>
+	</scm>
+  
+	<distributionManagement>
+		<repository>
+			<id>com.evil-co.maven.opensource</id>
+			<url>http://www.evil-co.commaven/repository/opensource/</url>
+		</repository>
+	</distributionManagement>
+  
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<signerKeyStore>${basedir}/../evilco-keystore</signerKeyStore>
+		<signerPassword>changeit</signerPassword>
+		<signerAlias>evilco-commercial</signerAlias>
+	</properties>
+  
+	<repositories>
+		<repository>
+			<id>com.evil-co.maven.opensource</id>
+			<url>http://www.evil-co.com/maven/repository/opensource/</url>
+		</repository>
+		
+		<repository>
+			<id>bukkit-repo</id>
+			<url>http://repo.bukkit.org/content/groups/public</url>
+		</repository>
+	</repositories>
+  
+	<dependencies>
+		<!-- Bukkit -->
+		<dependency>
+			<groupId>org.bukkit</groupId>
+			<artifactId>bukkit</artifactId>
+			<version>1.5.1-R0.2</version>
+			<scope>compile</scope>
+			<type>jar</type>
+			<optional>true</optional>
+		</dependency>
+	</dependencies>
+  
+	<build>
+		<finalName>${project.groupId}.${project.artifactId}</finalName>
+	
+		<defaultGoal>clean install</defaultGoal>
+		<sourceDirectory>${basedir}/src/main/java/</sourceDirectory>
+
+		<resources>
+			<resource>
+				<targetPath>.</targetPath>
+				<filtering>false</filtering>
+				<directory>${basedir}/</directory>
+				
+				<includes>
+					<include>LICENSE</include>
+				</includes>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.3.1</version>
+
+				<configuration>
+					<archive>
+						<addMavenDescriptor>true</addMavenDescriptor>
+
+						<manifest>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+						</manifest>
+
+						<manifestEntries>
+							<!-- <Class-Path>truezip.jar WorldEdit/truezip.jar js.jar WorldEdit/js.jar</Class-Path> -->
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>1.7.1</version>
+
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+				
+				<configuration>
+					<minimizeJar>true</minimizeJar>
+					
+					<artifactSet>
+						<includes>
+							<include>com.evilco.*:*</include>
+						</includes>
+					</artifactSet>
+				</configuration>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.3.2</version>
+				
+				<configuration>
+					<arguments>-DsignerKeyStore=${signerKeyStore} -DsignerAlias=${signerAlias} -DsignerPassword=${signerPassword}</arguments>
+					<preparationGoals>assembly:assembly</preparationGoals>
+					<goals>assembly:assembly</goals>
+					<tagNameFormat>release-@{project.version}</tagNameFormat>
+				</configuration>
+			</plugin>
+			
+			<!-- JAR signing -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jarsigner-plugin</artifactId>
+				<version>1.2</version>
+
+				<executions>
+					<execution>
+						<id>sign</id>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+
+				<configuration>
+					<keystore>${signerKeyStore}</keystore>
+					<alias>${signerAlias}</alias>
+					<storepass>${signerPassword}</storepass>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+  
+	<profiles>
+		<!-- Attach javadocs and source .jars -->
+		<profile>
+			<id>attach-docs</id>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-source-plugin</artifactId>
+						<version>2.2.1</version>
+	
+						<executions>
+							<execution>
+								<id>attach-sources</id>
+								<goals>
+									<goal>jar</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+</project>
