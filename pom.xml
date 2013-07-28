@@ -38,8 +38,8 @@
   
 	<distributionManagement>
 		<repository>
-			<id>com.evil-co.maven.opensource</id>
-			<url>http://www.evil-co.commaven/repository/opensource/</url>
+			<id>evil-co</id>
+			<url>http://nexus.evil-co.org/content/groups/public/</url>
 		</repository>
 	</distributionManagement>
   
@@ -52,8 +52,8 @@
   
 	<repositories>
 		<repository>
-			<id>com.evil-co.maven.opensource</id>
-			<url>http://www.evil-co.com/maven/repository/opensource/</url>
+			<id>evil-co</id>
+			<url>http://nexus.evil-co.org/content/groups/public/</url>
 		</repository>
 		
 		<repository>
@@ -75,7 +75,7 @@
 	</dependencies>
   
 	<build>
-		<finalName>${project.groupId}.${project.artifactId}</finalName>
+		<finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
 	
 		<defaultGoal>clean install</defaultGoal>
 		<sourceDirectory>${basedir}/src/main/java/</sourceDirectory>
