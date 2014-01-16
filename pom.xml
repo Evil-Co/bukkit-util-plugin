@@ -2,15 +2,15 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.evilco.bukkit.util</groupId>
 	<artifactId>plugin</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<packaging>jar</packaging>
-  
+
 	<!-- Project information -->
 	<name>Plugin Utility</name>
 	<inceptionYear>2013</inceptionYear>
 	<url>http://www.evil-co.com/product/mc/bukkit/utilities/plugin</url>
 	<description>Provides simple APIs which make the life of a Bukkit plugin developer easier.</description>
-    
+
 	<licenses>
 		<license>
 			<name>GNU Lesser General Public License 3.0</name>
@@ -18,50 +18,50 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-  
+
 	<issueManagement>
 		<system>JIRA</system>
 		<url>http://www.evil-co.com/project</url>
 	</issueManagement>
-  
+
 	<ciManagement>
 		<system>Bamboo</system>
 		<url>http://www.evil-co.com/ci</url>
 	</ciManagement>
-  
+
 	<scm>
 		<connection>scm:git:git://github.com/Evil-Co/bukkit-util-plugin.git</connection>
 		<developerConnection>scm:git:git@github.com:Evil-Co/bukkit-util-plugin.git</developerConnection>
 		<url>https://github.com/Evil-Co/bukkit-util-plugin</url>
 		<tag>master</tag>
 	</scm>
-  
+
 	<distributionManagement>
 		<repository>
 			<id>evil-co</id>
 			<url>http://nexus.evil-co.org/content/groups/public/</url>
 		</repository>
 	</distributionManagement>
-  
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<signerKeyStore>${basedir}/../evilco-keystore</signerKeyStore>
 		<signerPassword>changeit</signerPassword>
 		<signerAlias>evilco-commercial</signerAlias>
 	</properties>
-  
+
 	<repositories>
 		<repository>
 			<id>evil-co</id>
 			<url>http://nexus.evil-co.org/content/groups/public/</url>
 		</repository>
-		
+
 		<repository>
 			<id>bukkit-repo</id>
 			<url>http://repo.bukkit.org/content/groups/public</url>
 		</repository>
 	</repositories>
-  
+
 	<dependencies>
 		<!-- Bukkit -->
 		<dependency>
@@ -72,11 +72,18 @@
 			<type>jar</type>
 			<optional>true</optional>
 		</dependency>
+
+		<!-- Reflection -->
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>14.0.1</version>
+		</dependency>
 	</dependencies>
-  
+
 	<build>
 		<finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
-	
+
 		<defaultGoal>clean install</defaultGoal>
 		<sourceDirectory>${basedir}/src/main/java/</sourceDirectory>
 
@@ -85,7 +92,7 @@
 				<targetPath>.</targetPath>
 				<filtering>false</filtering>
 				<directory>${basedir}/</directory>
-				
+
 				<includes>
 					<include>LICENSE</include>
 				</includes>
@@ -137,23 +144,24 @@
 						</goals>
 					</execution>
 				</executions>
-				
+
 				<configuration>
 					<minimizeJar>true</minimizeJar>
-					
+
 					<artifactSet>
 						<includes>
 							<include>com.evilco.*:*</include>
+							<include>com.google.guava:*</include>
 						</includes>
 					</artifactSet>
 				</configuration>
 			</plugin>
-			
+
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.3.2</version>
-				
+
 				<configuration>
 					<arguments>-DsignerKeyStore=${signerKeyStore} -DsignerAlias=${signerAlias} -DsignerPassword=${signerPassword}</arguments>
 					<preparationGoals>assembly:assembly</preparationGoals>
@@ -161,50 +169,38 @@
 					<tagNameFormat>release-@{project.version}</tagNameFormat>
 				</configuration>
 			</plugin>
-			
-			<!-- JAR signing -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jarsigner-plugin</artifactId>
-				<version>1.2</version>
-
-				<executions>
-					<execution>
-						<id>sign</id>
-						<goals>
-							<goal>sign</goal>
-						</goals>
-					</execution>
-				</executions>
-
-				<configuration>
-					<keystore>${signerKeyStore}</keystore>
-					<alias>${signerAlias}</alias>
-					<storepass>${signerPassword}</storepass>
-				</configuration>
-			</plugin>
 		</plugins>
 	</build>
-  
+
+	<!-- Build Profiles -->
 	<profiles>
-		<!-- Attach javadocs and source .jars -->
 		<profile>
-			<id>attach-docs</id>
+			<id>release</id>
+
+			<!-- Build Configuration -->
 			<build>
+				<!-- Build Plugins -->
 				<plugins>
+					<!-- JAR signing -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-source-plugin</artifactId>
-						<version>2.2.1</version>
-	
+						<artifactId>maven-jarsigner-plugin</artifactId>
+						<version>1.2</version>
+
 						<executions>
 							<execution>
-								<id>attach-sources</id>
+								<id>sign</id>
 								<goals>
-									<goal>jar</goal>
+									<goal>sign</goal>
 								</goals>
 							</execution>
 						</executions>
+
+						<configuration>
+							<keystore>${signerKeyStore}</keystore>
+							<alias>${signerAlias}</alias>
+							<storepass>${signerPassword}</storepass>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>
