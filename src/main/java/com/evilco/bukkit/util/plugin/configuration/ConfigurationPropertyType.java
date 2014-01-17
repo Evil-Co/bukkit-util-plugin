@@ -16,6 +16,7 @@ package com.evilco.bukkit.util.plugin.configuration;
 
 import com.google.common.collect.ImmutableMap;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -29,6 +30,7 @@ public enum ConfigurationPropertyType {
 	DOUBLE (Double.class),
 	INTEGER (Integer.class),
 	STRING (String.class),
+	LIST (List.class),
 	SERIALIZED (null);
 
 	/**

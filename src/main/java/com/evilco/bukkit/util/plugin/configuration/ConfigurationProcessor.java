@@ -42,8 +42,8 @@ import java.io.OutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.reflect.ParameterizedType;
+import java.util.*;
 
 /**
  * @package com.evilco.bukkit.util.plugin.configuration
@@ -77,6 +77,12 @@ public class ConfigurationProcessor <T> {
 		this.objectMetadata = objectType.getAnnotation (Configuration.class);
 	}
 
+	/**
+	 * Loads a configuration file.
+	 * @param stream
+	 * @return
+	 * @throws ConfigurationException
+	 */
 	public T Load (InputStream stream) throws ConfigurationException {
 		try {
 			// create xml document
@@ -240,6 +246,14 @@ public class ConfigurationProcessor <T> {
 					case STRING:
 						field.set (object, value);
 						break;
+					case LIST:
+						ParameterizedType listType = ((ParameterizedType) field.getGenericType ());
+
+						// find list type to construct a new array list
+						Class<?> listGenericType = ((Class<?>) listType.getActualTypeArguments ()[0]);
+
+						// construct a new array list
+						field.set (object, this.SerializeListFrom (items, listGenericType));
 					case SERIALIZED:
 						// get reflection factory
 						ReflectionFactory reflectionFactory = ReflectionFactory.getReflectionFactory ();
@@ -268,6 +282,81 @@ public class ConfigurationProcessor <T> {
 		} catch (InvocationTargetException ex) {
 			throw new ConfigurationProcessorException (ex);
 		}
+	}
+
+	/**
+	 * De-Serializes a list.
+	 * @param elements
+	 * @param type
+	 * @param <T>
+	 * @return
+	 * @throws ConfigurationException
+	 */
+	protected <T> List<T> SerializeListFrom (NodeList elements, Class<T> type) throws ConfigurationException {
+		// construct empty list
+		List<T> itemList = new ArrayList<T> ();
+
+		// find corresponding type
+		ConfigurationPropertyType propertyType = ConfigurationPropertyType.fromType (type);
+
+		// add elements from node list
+		for (int i = 0; i < elements.getLength (); i++) {
+			Element currentElement = ((Element) elements.item (i));
+
+			// get value
+			String value = currentElement.getNodeValue ();
+
+			// decode
+			switch (propertyType) {
+				case BOOLEAN:
+					itemList.add (type.cast (Boolean.getBoolean (value)));
+					break;
+				case DOUBLE:
+					itemList.add (type.cast (Double.valueOf (value)));
+					break;
+				case FLOAT:
+					itemList.add (type.cast (Float.valueOf (value)));
+					break;
+				case INTEGER:
+					itemList.add (type.cast (Integer.valueOf (value)));
+					break;
+				case STRING:
+					itemList.add (type.cast (value));
+					break;
+				case LIST:
+					throw new ConfigurationProcessorException ("Lists cannot contain lists.");
+				case SERIALIZED:
+					// get reflection factory
+					ReflectionFactory reflectionFactory = ReflectionFactory.getReflectionFactory ();
+
+					// get constructor
+					try {
+						Constructor defaultConstructor = type.getDeclaredConstructor ();
+						Constructor serializationConstructor = reflectionFactory.newConstructorForSerialization (type, defaultConstructor);
+
+						// create instance
+						Object obj = serializationConstructor.newInstance ();
+
+						// serialize
+						this.SerializeFrom (obj, currentElement);
+
+						// store
+						itemList.add (((T) obj));
+					} catch (NoSuchMethodException ex) {
+						throw new ConfigurationProcessorException (ex);
+					} catch (InstantiationException ex) {
+						throw new ConfigurationProcessorException (ex);
+					} catch (IllegalAccessException ex) {
+						throw new ConfigurationProcessorException (ex);
+					} catch (InvocationTargetException ex) {
+						throw new ConfigurationProcessorException (ex);
+					}
+					break;
+			}
+		}
+
+		// return finished list
+		return itemList;
 	}
 
 	/**
@@ -315,6 +404,18 @@ public class ConfigurationProcessor <T> {
 				}
 			}
 
+			// append comment
+			if (field.isAnnotationPresent (ConfigurationComment.class)) {
+				// get comment
+				ConfigurationComment commentMetadata = field.getAnnotation (ConfigurationComment.class);
+
+				// create XML comment
+				Comment comment = document.createComment (commentMetadata.value ());
+
+				// append to DOM
+				parent.appendChild (comment);
+			}
+
 			// make field accessible
 			field.setAccessible (true);
 
@@ -339,6 +440,21 @@ public class ConfigurationProcessor <T> {
 					case STRING:
 						propertyElement.setTextContent (String.valueOf (field.get (object)));
 						break;
+					case LIST:
+						List<Object> list = ((List<Object>) field.get (object));
+
+						// serialize elements
+						for (Object element : list) {
+							// create element
+							Element listElement = document.createElementNS (this.objectMetadata.namespace (), propertyElement.getTagName ());
+
+							// serialize data
+							this.SerializeInto (document, listElement, parent);
+
+							// append
+							parent.appendChild (listElement);
+						}
+						break;
 					case SERIALIZED:
 						this.SerializeInto (document, field.get (object), propertyElement);
 						break;
@@ -347,18 +463,6 @@ public class ConfigurationProcessor <T> {
 				}
 			} catch (IllegalAccessException ex) {
 				throw new ConfigurationProcessorException (ex);
-			}
-
-			// append comment
-			if (field.isAnnotationPresent (ConfigurationComment.class)) {
-				// get comment
-				ConfigurationComment commentMetadata = field.getAnnotation (ConfigurationComment.class);
-
-				// create XML comment
-				Comment comment = document.createComment (commentMetadata.value ());
-
-				// append to DOM
-				parent.appendChild (comment);
 			}
 
 			// append to root
