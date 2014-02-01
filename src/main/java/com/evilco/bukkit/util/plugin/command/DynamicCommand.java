@@ -28,6 +28,11 @@ import java.util.Arrays;
 public class DynamicCommand extends org.bukkit.command.Command {
 
 	/**
+	 * Stores all supplied command flags.
+	 */
+	protected String flags;
+
+	/**
 	 * Stores the handler object.
 	 */
 	protected Object handlerObject;
@@ -49,18 +54,21 @@ public class DynamicCommand extends org.bukkit.command.Command {
 
 	/**
 	 * @param aliases
+	 * @param flags
 	 * @param description
 	 * @param usage
-	 * @param owner
-	 * @param handler
+	 * @param parentManager
+	 * @param handlerObject
+	 * @param handlerMethod
 	 */
-	public DynamicCommand (String[] aliases, String description, String usage, CommandManager parentManager, Object handlerObject, Method handlerMethod) {
+	public DynamicCommand (String[] aliases, String flags, String description, String usage, CommandManager parentManager, Object handlerObject, Method handlerMethod) {
 		super (aliases[0], description, usage, Arrays.asList (aliases));
 
 		// store arguments
 		this.parentManager = parentManager;
 		this.handlerObject = handlerObject;
 		this.handlerMethod = handlerMethod;
+		this.flags = flags;
 	}
 
 	/**
@@ -72,8 +80,12 @@ public class DynamicCommand extends org.bukkit.command.Command {
 	 */
 	@Override
 	public boolean execute (CommandSender commandSender, String s, String[] strings) {
+		// parse arguments
+		CommandContext context = new CommandContext (flags);
+		context.parse (strings);
+
 		try {
-			return ((Boolean) this.handlerMethod.invoke (this.handlerObject, commandSender, s, strings));
+			return ((Boolean) this.handlerMethod.invoke (this.handlerObject, commandSender, context));
 		} catch (IllegalAccessException ex) {
 			this.parentManager.logger.severe ("Cannot access " + this.handlerObject.getClass ().getName () + " -> " + this.handlerMethod.getName () + ": " + ex.getMessage ());
 			this.parentManager.logger.severe ("This is an error in the implementation of the command " + this.getName () + ". Please contact the plugin author and report this issue.");

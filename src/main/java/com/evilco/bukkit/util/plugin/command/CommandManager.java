@@ -24,12 +24,12 @@ import com.evilco.bukkit.util.plugin.command.annotation.CommandHandler;
 import com.evilco.bukkit.util.plugin.java.ReflectionUtility;
 import com.google.common.reflect.ClassPath;
 import org.bukkit.command.CommandMap;
+import org.bukkit.command.CommandSender;
 import org.bukkit.command.SimpleCommandMap;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -112,7 +112,7 @@ public class CommandManager {
 	 * Registers a new command handler and it's commands.
 	 * @param obj
 	 */
-	public void registerCommandHandler(Class<?> obj) {
+	public void registerCommandHandler(Class<?> obj) throws CommandRegistrationException {
 		// verify
 		if (!obj.isAnnotationPresent(CommandHandler.class)) {
 			this.logger.log(Level.SEVERE, "Cannot register command handler \"" + obj.getCanonicalName() + "\": CommandHandler annotation is not present.");
@@ -155,12 +155,26 @@ public class CommandManager {
 	 * @param handlerObject
 	 * @param handlerMethod
 	 */
-	public void registerCommand (Command command, Object handlerObject, Method handlerMethod) {
+	public void registerCommand (Command command, Object handlerObject, Method handlerMethod) throws CommandRegistrationException {
 		// get command map
 		CommandMap map = this.getCommandMap ();
 
+		// validate command arguments
+		List<Class<?>> argumentTypes = new ArrayList<Class<?>> (Arrays.asList (handlerMethod.getParameterTypes ()));
+
+		// verify size
+		if (argumentTypes.size () < 3) throw new CommandRegistrationException ("The command handler " + handlerObject.getClass ().getCanonicalName () + " -> " + handlerMethod.getName () + " does not have the correct method signature: CommandSender, String, CommandContext.");
+
+		try {
+			argumentTypes.get (0).asSubclass (CommandSender.class);
+			argumentTypes.get (1).asSubclass (String.class);
+			argumentTypes.get (2).asSubclass (CommandContext.class);
+		} catch (ClassCastException ex) {
+			throw new CommandRegistrationException ("The command handler " + handlerObject.getClass ().getCanonicalName () + " -> " + handlerMethod.getName () + " does not have the correct method signature: CommandSender, String, CommandContext.");
+		}
+
 		// create new command
-		DynamicCommand newCommand = new DynamicCommand (command.aliases (), command.description (), command.usage (), this, handlerObject, handlerMethod);
+		DynamicCommand newCommand = new DynamicCommand (command.aliases (), command.flags (), command.description (), command.usage (), this, handlerObject, handlerMethod);
 
 		// set permissions
 		newCommand.setPermissions (command.permissions ());
