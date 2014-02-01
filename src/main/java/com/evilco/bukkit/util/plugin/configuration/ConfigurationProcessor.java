@@ -237,6 +237,12 @@ public class ConfigurationProcessor <T> {
 					case DOUBLE:
 						field.setDouble (object, Double.valueOf (value));
 						break;
+					case ENUM:
+						Class<? extends Enum> enumType = field.getType ().asSubclass (Enum.class);
+
+						// set field content
+						field.set (object, Enum.valueOf (enumType, value));
+						break;
 					case FLOAT:
 						field.setFloat (object, Float.valueOf (value));
 						break;
@@ -313,6 +319,9 @@ public class ConfigurationProcessor <T> {
 					break;
 				case DOUBLE:
 					itemList.add (type.cast (Double.valueOf (value)));
+					break;
+				case ENUM:
+					itemList.add (type.cast (value.toString ()));
 					break;
 				case FLOAT:
 					itemList.add (type.cast (Float.valueOf (value)));
@@ -430,6 +439,9 @@ public class ConfigurationProcessor <T> {
 						break;
 					case DOUBLE:
 						propertyElement.setTextContent (((Double) field.getDouble (object)).toString ());
+						break;
+					case ENUM:
+						propertyElement.setTextContent (field.get (object).toString ());
 						break;
 					case FLOAT:
 						propertyElement.setTextContent (((Float) field.getFloat (object)).toString ());

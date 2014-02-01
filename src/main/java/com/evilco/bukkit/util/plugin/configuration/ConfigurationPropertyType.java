@@ -26,6 +26,7 @@ import java.util.Map;
  */
 public enum ConfigurationPropertyType {
 	BOOLEAN (Boolean.class),
+	ENUM (Enum.class),
 	FLOAT (Float.class),
 	DOUBLE (Double.class),
 	INTEGER (Integer.class),
