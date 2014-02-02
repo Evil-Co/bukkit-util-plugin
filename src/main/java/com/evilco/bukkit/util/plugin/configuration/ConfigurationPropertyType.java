@@ -30,9 +30,10 @@ public enum ConfigurationPropertyType {
 	FLOAT (Float.class),
 	DOUBLE (Double.class),
 	INTEGER (Integer.class),
+	MAP (Map.class),
 	STRING (String.class),
 	LIST (List.class),
-	SERIALIZED (null);
+	OBJECT (null);
 
 	/**
 	 * Stores the primitive mapping.
@@ -72,7 +73,7 @@ public enum ConfigurationPropertyType {
 		}
 
 		// fallback
-		return ConfigurationPropertyType.SERIALIZED;
+		return ConfigurationPropertyType.OBJECT;
 	}
 
 	/**
