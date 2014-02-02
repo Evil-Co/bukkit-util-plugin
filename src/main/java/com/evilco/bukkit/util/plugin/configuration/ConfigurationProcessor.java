@@ -310,6 +310,12 @@ public class ConfigurationProcessor<T> {
 		}
 	}
 
+	/**
+	 * Saves an object.
+	 * @param object
+	 * @param stream
+	 * @throws ConfigurationException
+	 */
 	public void Save (T object, OutputStream stream) throws ConfigurationException {
 		// create new document builder
 		DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance ();
