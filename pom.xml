@@ -39,7 +39,7 @@
 	<distributionManagement>
 		<snapshotRepository>
 			<id>evil-co</id>
-			<url>http://nexus.evil-co.org/content/repositories/free-snapshot/</url>
+			<url>http://nexus.evil-co.org/content/repositories/free-snapshots/</url>
 		</snapshotRepository>
 	</distributionManagement>
 
