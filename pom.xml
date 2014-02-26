@@ -37,10 +37,10 @@
 	</scm>
 
 	<distributionManagement>
-		<repository>
+		<snapshotRepository>
 			<id>evil-co</id>
-			<url>http://nexus.evil-co.org/content/groups/public/</url>
-		</repository>
+			<url>http://nexus.evil-co.org/content/repositories/free-snapshot/</url>
+		</snapshotRepository>
 	</distributionManagement>
 
 	<properties>
@@ -167,6 +167,17 @@
 					<preparationGoals>assembly:assembly</preparationGoals>
 					<goals>assembly:assembly</goals>
 					<tagNameFormat>release-@{project.version}</tagNameFormat>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.sonatype.plugins</groupId>
+				<artifactId>nexus-staging-maven-plugin</artifactId>
+				<version>1.5.1</version>
+				<extensions>true</extensions>
+				<configuration>
+					<serverId>evil-co</serverId>
+					<nexusUrl>http://nexus.evil-co.org/</nexusUrl>
 				</configuration>
 			</plugin>
 		</plugins>
